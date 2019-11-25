@@ -7,9 +7,7 @@ resource "aws_launch_configuration" "exmaple" {
   instance_type = "t2.micro"
   security_groups = [aws_security_group.instance.id]
 
-  tags = {
-    Name = "terraform-example"
-  }
+
 
   user_data = <<-EOF
               #!/bin/bash
@@ -32,10 +30,10 @@ data "aws_subnet_ids" "default" {
 
 resource "aws_autoscaling_group" "example" {
   launch_configuration = aws_launch_configuration.exmaple.name
-  vpc_zone_identifier = data.aws_subnet_ids.default.id
+  vpc_zone_identifier = data.aws_subnet_ids.default.ids
 
-  max_size = 2
-  min_size = 10
+  max_size = 10
+  min_size = 2
 
   tag {
     key = "Name"
