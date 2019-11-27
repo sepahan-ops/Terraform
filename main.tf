@@ -1,3 +1,4 @@
+# Infra info
 provider "aws" {
   region = "us-east-1"
 }
@@ -20,6 +21,15 @@ resource "aws_launch_configuration" "exmaple" {
   }
 }
 
+# Variables
+variable "server_port" {
+  description = "The port the server will use for HTTP requests"
+  type = number
+  default = 8080
+}
+
+# Data
+
 data "aws_vpc" "default" {
   default = true
 }
@@ -28,6 +38,7 @@ data "aws_subnet_ids" "default" {
   vpc_id = data.aws_vpc.default.id
 }
 
+# ASG
 resource "aws_autoscaling_group" "example" {
   launch_configuration = aws_launch_configuration.exmaple.name
   vpc_zone_identifier = data.aws_subnet_ids.default.ids
@@ -56,22 +67,12 @@ resource "aws_security_group" "instance" {
   }
 }
 
-variable "server_port" {
-  description = "The port the server will use for HTTP requests"
-  type = number
-  default = 8080
-}
-
 output "alb_dns_name" {
   value = aws_lb.example.dns_name
   description = "The public IP address of the web server"
 }
 
-resource "aws_lb" "example" {
-  name = "terraform_asg_example"
-  load_balancer_type = "application"
-  subnets = data.aws_subnet_ids.default.ids
-}
+
 
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.example.arn
@@ -89,6 +90,7 @@ resource "aws_lb_listener" "http" {
   }
 }
 
+# ALB
 resource "aws_security_group" "alb" {
   name = "terraform-example-alb"
   ingress {
