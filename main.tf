@@ -8,24 +8,15 @@ resource "aws_launch_configuration" "exmaple" {
   instance_type = "t2.micro"
   security_groups = [aws_security_group.instance.id]
 
-
-
   user_data = <<-EOF
               #!/bin/bash
-              echo "Hello, World" > index . html
-              nohup busybox httpd f p ${var.server_port} &
+              echo "Hello, World" > index.html
+              nohup busybox httpd -f -p ${var.server_port} &
               EOF
 
   lifecycle {
     create_before_destroy = true
   }
-}
-
-# Variables
-variable "server_port" {
-  description = "The port the server will use for HTTP requests"
-  type = number
-  default = 8080
 }
 
 # Data
@@ -67,13 +58,6 @@ resource "aws_security_group" "instance" {
   }
 }
 
-output "alb_dns_name" {
-  value = aws_lb.example.dns_name
-  description = "The public IP address of the web server"
-}
-
-
-
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.example.arn
   port = 80
@@ -91,6 +75,13 @@ resource "aws_lb_listener" "http" {
 }
 
 # ALB
+resource "aws_lb" "example" {
+  name = "terraform-asg-example"
+  load_balancer_type = "application"
+  subnets = data.aws_subnet_ids.default.ids
+  security_groups = [aws_security_group.alb.id]
+}
+
 resource "aws_security_group" "alb" {
   name = "terraform-example-alb"
   ingress {
@@ -108,12 +99,7 @@ resource "aws_security_group" "alb" {
   }
 }
 
-resource "aws_lb" "example" {
-  name = "terraform-asg-example"
-  load_balancer_type = "application"
-  subnets = data.aws_subnet_ids.default.ids
-  security_groups = [aws_security_group.alb.id]
-}
+
 
 resource "aws_lb_target_group" "asg" {
   name = "terrafor-asg-example"
